@@ -138,7 +138,7 @@ export const scrapeTableData = async (document: any) => {
 	return table;
 };
 
-const getFinancialInfo: (ticker: string) => Promise<FinancialData> = async (ticker: string) => {
+export const getFinancialInfo: (ticker: string) => Promise<FinancialData> = async (ticker: string) => {
     const obj: any = {};
     const cashFlowTable: string[][] = await scrapeTableData(await fetchCashFlowData(ticker));
     const incomeTable: string[][] = await scrapeTableData(await fetchFinancialData(ticker));
@@ -172,9 +172,9 @@ const getFinancialInfo: (ticker: string) => Promise<FinancialData> = async (tick
 const addInfoToObj = (obj: any, infoTable: string[][]) => {
     const years = infoTable[0];
     for(let i = 1; i < infoTable.length; i++){
-        const rowName: string = infoTable[i][0];
+        let rowName: string = infoTable[i][0];
         if(rowName === undefined){
-            continue;
+            rowName = "Revenue";
         }
         obj[rowName] = {};
         for(let x = 1; x < years.length; x++){
