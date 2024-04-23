@@ -145,7 +145,6 @@ var scrapeFinVizData = function (ticker) { return __awaiter(void 0, void 0, void
                         }
                     }
                 });
-                console.log(table);
                 return [2 /*return*/, table];
         }
     });
@@ -213,7 +212,7 @@ var scrapeTableData = function (document) { return __awaiter(void 0, void 0, voi
 }); };
 exports.scrapeTableData = scrapeTableData;
 var main = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
-    var obj, cashFlowTable, _a, incomeTable, _b, balanceSheetTable, _c;
+    var obj, cashFlowTable, _a, incomeTable, _b, balanceSheetTable, _c, finvizData, x, row, i, key, value;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
@@ -233,9 +232,30 @@ var main = function (ticker) { return __awaiter(void 0, void 0, void 0, function
             case 5: return [4 /*yield*/, _c.apply(void 0, [_d.sent()])];
             case 6:
                 balanceSheetTable = _d.sent();
+                return [4 /*yield*/, (0, exports.scrapeFinVizData)(ticker)];
+            case 7:
+                finvizData = _d.sent();
+                for (x = 0; x < finvizData.length; x++) {
+                    row = finvizData[x];
+                    for (i = 0; i < row.length; i += 2) {
+                        key = row[i];
+                        value = row[i + 1];
+                        if (key === 'Sales' && value.endsWith('B')) {
+                            value = parseFloat(value) * 1e9;
+                        }
+                        if (!isNaN(parseFloat(value))) {
+                            value = parseFloat(value);
+                            if (value.toString().includes('%')) {
+                                value = value / 100;
+                            }
+                        }
+                        obj[key] = value;
+                    }
+                }
                 addInfoToObj(obj, cashFlowTable);
                 addInfoToObj(obj, incomeTable);
                 addInfoToObj(obj, balanceSheetTable);
+                console.log(obj["Sales"]);
                 return [2 /*return*/];
         }
     });
@@ -253,5 +273,4 @@ var addInfoToObj = function (obj, infoTable) {
         }
     }
 };
-// main("tsla");
-(0, exports.scrapeFinVizData)("tsla");
+main("tsla");

@@ -75,7 +75,6 @@ export const scrapeFinVizData = async(ticker: string) => {
 			}
 		}
 	});
-    console.log(table);
 	return table;
 
 }
@@ -144,11 +143,30 @@ const main = async(ticker: string) => {
     const cashFlowTable: string[][] = await scrapeTableData(await fetchCashFlowData(ticker));
     const incomeTable: string[][] = await scrapeTableData(await fetchFinancialData(ticker));
     const balanceSheetTable: string[][] = await scrapeTableData(await fetchBalanceSheetData(ticker));
+    const finvizData: string[][] = await scrapeFinVizData(ticker);
+    for (let x = 0; x < finvizData.length; x++) {
+        const row = finvizData[x];
+        for (let i = 0; i < row.length; i += 2) {
+            const key = row[i];
+            let value: any = row[i + 1];
+            if (key === 'Sales' && value.endsWith('B')) {
+                value = parseFloat(value) * 1e9;
+            }
+            
+            if (!isNaN(parseFloat(value))) {
+                value = parseFloat(value);
+                if (value.toString().includes('%')) {
+                    value = value / 100; 
+                }
+            }
+            obj[key] = value;
+        }
+    }
     addInfoToObj(obj, cashFlowTable);
     addInfoToObj(obj, incomeTable);
     addInfoToObj(obj, balanceSheetTable);
 
-    // console.log(obj);
+    console.log(obj["Sales"]);
 }
 const addInfoToObj = (obj: any, infoTable: string[][]) => {
     const years = infoTable[0];
@@ -165,5 +183,5 @@ const addInfoToObj = (obj: any, infoTable: string[][]) => {
 
 }
 
-// main("tsla");
-scrapeFinVizData("tsla");
+main("tsla");
+
