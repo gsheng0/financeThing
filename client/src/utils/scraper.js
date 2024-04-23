@@ -36,26 +36,70 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.scrapeData = void 0;
+exports.scrapeTableData = exports.scrapeFinVizData = void 0;
 var axios_1 = require("axios");
 var parse5_1 = require("parse5");
-var fetchData = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var result, out;
+var fetchFinancialData = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
+    var result;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, axios_1.default.get('https://stockanalysis.com/stocks/tsla/financials/')];
+            case 0: return [4 /*yield*/, axios_1.default.get("https://stockanalysis.com/stocks/".concat(ticker, "/financials/"))];
             case 1:
                 result = _a.sent();
-                out = (0, parse5_1.parse)(result.data);
-                return [2 /*return*/, out];
+                return [2 /*return*/, (0, parse5_1.parse)(result.data)];
         }
     });
 }); };
-var scrapeData = function () { return __awaiter(void 0, void 0, void 0, function () {
+var fetchBalanceSheetData = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
+    var result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, axios_1.default.get("https://stockanalysis.com/stocks/".concat(ticker, "/financials/balance-sheet/"))];
+            case 1:
+                result = _a.sent();
+                return [2 /*return*/, (0, parse5_1.parse)(result.data)];
+        }
+    });
+}); };
+var fetchCashFlowData = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
+    var result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, axios_1.default.get("https://stockanalysis.com/stocks/".concat(ticker, "/financials/cash-flow-statement/"))];
+            case 1:
+                result = _a.sent();
+                return [2 /*return*/, (0, parse5_1.parse)(result.data)];
+        }
+    });
+}); };
+var fetchFinVizData = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
+    var headers, result, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36'
+                };
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, axios_1.default.get("https://finviz.com/quote.ashx?t=".concat(ticker, "&p=d"), { headers: headers })];
+            case 2:
+                result = _a.sent();
+                return [2 /*return*/, (0, parse5_1.parse)(result.data)];
+            case 3:
+                error_1 = _a.sent();
+                console.error(error_1);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+var scrapeFinVizData = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
     var document, traverse, tableClassName, table;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, fetchData()];
+            case 0: return [4 /*yield*/, fetchFinVizData(ticker)];
             case 1:
                 document = _a.sent();
                 traverse = function (node, callback) {
@@ -67,7 +111,7 @@ var scrapeData = function () { return __awaiter(void 0, void 0, void 0, function
                     }
                     callback(node);
                 };
-                tableClassName = 'w-full border-separate border-spacing-0 whitespace-nowrap';
+                tableClassName = 'js-snapshot-table snapshot-table2 screener_snapshot-table-body';
                 table = [];
                 traverse(document, function (node) {
                     if (node.tagName === 'table' && node.attrs) {
@@ -80,14 +124,15 @@ var scrapeData = function () { return __awaiter(void 0, void 0, void 0, function
                                             var row_1 = [];
                                             rowNode.childNodes.forEach(function (cellNode) {
                                                 if (cellNode.tagName === 'td') {
-                                                    var found = false;
-                                                    for (var i = 0; i < cellNode.childNodes.length; i++) {
-                                                        if (cellNode.childNodes[i].tagName == 'span') {
-                                                            row_1.push(cellNode.childNodes[i].childNodes[0].value);
-                                                            found = true;
+                                                    if (cellNode.childNodes[0].value === undefined) {
+                                                        if (cellNode.childNodes[0].childNodes[0].value === undefined) {
+                                                            row_1.push(cellNode.childNodes[0].childNodes[0].childNodes[0].value);
+                                                        }
+                                                        else {
+                                                            row_1.push(cellNode.childNodes[0].childNodes[0].value);
                                                         }
                                                     }
-                                                    if (!found) {
+                                                    else {
                                                         row_1.push(cellNode.childNodes[0].value);
                                                     }
                                                 }
@@ -100,9 +145,113 @@ var scrapeData = function () { return __awaiter(void 0, void 0, void 0, function
                         }
                     }
                 });
+                console.log(table);
                 return [2 /*return*/, table];
         }
     });
 }); };
-exports.scrapeData = scrapeData;
-(0, exports.scrapeData)();
+exports.scrapeFinVizData = scrapeFinVizData;
+var scrapeTableData = function (document) { return __awaiter(void 0, void 0, void 0, function () {
+    var traverse, tableClassName, table;
+    return __generator(this, function (_a) {
+        traverse = function (node, callback) {
+            if (node.childNodes) {
+                for (var _i = 0, _a = node.childNodes; _i < _a.length; _i++) {
+                    var childNode = _a[_i];
+                    traverse(childNode, callback);
+                }
+            }
+            callback(node);
+        };
+        tableClassName = 'w-full border-separate border-spacing-0 whitespace-nowrap';
+        table = [];
+        traverse(document, function (node) {
+            if (node.tagName === 'table' && node.attrs) {
+                var classAttr = node.attrs.find(function (attr) { return attr.name === 'class'; });
+                if (classAttr && classAttr.value === tableClassName) {
+                    node.childNodes.forEach(function (childNode) {
+                        if (childNode.tagName === 'tbody') {
+                            childNode.childNodes.forEach(function (rowNode) {
+                                if (rowNode.tagName === 'tr') {
+                                    var row_2 = [];
+                                    rowNode.childNodes.forEach(function (cellNode) {
+                                        if (cellNode.tagName === 'td') {
+                                            var found = false;
+                                            for (var i = 0; i < cellNode.childNodes.length; i++) {
+                                                if (cellNode.childNodes[i].tagName == 'span') {
+                                                    row_2.push(cellNode.childNodes[i].childNodes[0].value);
+                                                    found = true;
+                                                }
+                                            }
+                                            if (!found) {
+                                                row_2.push(cellNode.childNodes[0].value);
+                                            }
+                                        }
+                                    });
+                                    table.push(row_2);
+                                }
+                            });
+                        }
+                        else if (childNode.tagName === 'thead') {
+                            var row = [];
+                            for (var i = 0; i < childNode.childNodes.length; i++) {
+                                for (var x = 0; childNode.childNodes[i] !== undefined && x < childNode.childNodes[i].childNodes.length - 1; x++) {
+                                    if (childNode.childNodes[i].childNodes[x].childNodes === undefined) {
+                                        continue;
+                                    }
+                                    row.push(childNode.childNodes[i].childNodes[x].childNodes[0].value);
+                                }
+                            }
+                            table.push(row);
+                        }
+                    });
+                }
+            }
+        });
+        return [2 /*return*/, table];
+    });
+}); };
+exports.scrapeTableData = scrapeTableData;
+var main = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
+    var obj, cashFlowTable, _a, incomeTable, _b, balanceSheetTable, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                obj = {};
+                _a = exports.scrapeTableData;
+                return [4 /*yield*/, fetchCashFlowData(ticker)];
+            case 1: return [4 /*yield*/, _a.apply(void 0, [_d.sent()])];
+            case 2:
+                cashFlowTable = _d.sent();
+                _b = exports.scrapeTableData;
+                return [4 /*yield*/, fetchFinancialData(ticker)];
+            case 3: return [4 /*yield*/, _b.apply(void 0, [_d.sent()])];
+            case 4:
+                incomeTable = _d.sent();
+                _c = exports.scrapeTableData;
+                return [4 /*yield*/, fetchBalanceSheetData(ticker)];
+            case 5: return [4 /*yield*/, _c.apply(void 0, [_d.sent()])];
+            case 6:
+                balanceSheetTable = _d.sent();
+                addInfoToObj(obj, cashFlowTable);
+                addInfoToObj(obj, incomeTable);
+                addInfoToObj(obj, balanceSheetTable);
+                return [2 /*return*/];
+        }
+    });
+}); };
+var addInfoToObj = function (obj, infoTable) {
+    var years = infoTable[0];
+    for (var i = 1; i < infoTable.length; i++) {
+        var rowName = infoTable[i][0];
+        if (rowName === undefined) {
+            continue;
+        }
+        obj[rowName] = {};
+        for (var x = 1; x < years.length; x++) {
+            obj[rowName][years[x]] = infoTable[i][x];
+        }
+    }
+};
+// main("tsla");
+(0, exports.scrapeFinVizData)("tsla");
