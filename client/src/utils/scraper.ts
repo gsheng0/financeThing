@@ -138,7 +138,7 @@ export const scrapeTableData = async (document: any) => {
 	return table;
 };
 
-const main = async(ticker: string) => {
+const getFinancialInfo: (ticker: string) => Promise<FinancialData> = async (ticker: string) => {
     const obj: any = {};
     const cashFlowTable: string[][] = await scrapeTableData(await fetchCashFlowData(ticker));
     const incomeTable: string[][] = await scrapeTableData(await fetchFinancialData(ticker));
@@ -166,8 +166,9 @@ const main = async(ticker: string) => {
     addInfoToObj(obj, incomeTable);
     addInfoToObj(obj, balanceSheetTable);
 
-    console.log(obj["Sales"]);
-}
+    return obj as FinancialData;
+};
+
 const addInfoToObj = (obj: any, infoTable: string[][]) => {
     const years = infoTable[0];
     for(let i = 1; i < infoTable.length; i++){
@@ -177,11 +178,28 @@ const addInfoToObj = (obj: any, infoTable: string[][]) => {
         }
         obj[rowName] = {};
         for(let x = 1; x < years.length; x++){
-            obj[rowName][years[x]] = infoTable[i][x];
+            let value: any = infoTable[i][x];
+            if(value === undefined){
+                //do nothing
+            } else if(value.includes("%")){
+                value = value.substring(0, value.indexOf("%"));
+                value = (parseFloat(value)/100);
+            } else {
+                try{
+                    value = parseFloat(value);
+                } catch(e){
+                    console.log(e);
+                }
+
+            }
+            obj[rowName][years[x]] = value;
         }
     }
 
 }
+const main = async() => {
+    console.log((await getFinancialInfo("tsla")));
+}
 
-main("tsla");
+main();
 

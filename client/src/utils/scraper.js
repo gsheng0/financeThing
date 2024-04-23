@@ -211,7 +211,7 @@ var scrapeTableData = function (document) { return __awaiter(void 0, void 0, voi
     });
 }); };
 exports.scrapeTableData = scrapeTableData;
-var main = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
+var getFinancialInfo = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
     var obj, cashFlowTable, _a, incomeTable, _b, balanceSheetTable, _c, finvizData, x, row, i, key, value;
     return __generator(this, function (_d) {
         switch (_d.label) {
@@ -255,8 +255,7 @@ var main = function (ticker) { return __awaiter(void 0, void 0, void 0, function
                 addInfoToObj(obj, cashFlowTable);
                 addInfoToObj(obj, incomeTable);
                 addInfoToObj(obj, balanceSheetTable);
-                console.log(obj["Sales"]);
-                return [2 /*return*/];
+                return [2 /*return*/, obj];
         }
     });
 }); };
@@ -269,8 +268,37 @@ var addInfoToObj = function (obj, infoTable) {
         }
         obj[rowName] = {};
         for (var x = 1; x < years.length; x++) {
-            obj[rowName][years[x]] = infoTable[i][x];
+            var value = infoTable[i][x];
+            if (value === undefined) {
+                //do nothing
+            }
+            else if (value.includes("%")) {
+                value = value.substring(0, value.indexOf("%"));
+                value = (parseFloat(value) / 100);
+            }
+            else {
+                try {
+                    value = parseFloat(value);
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            }
+            obj[rowName][years[x]] = value;
         }
     }
 };
-main("tsla");
+var main = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _b = (_a = console).log;
+                return [4 /*yield*/, getFinancialInfo("tsla")];
+            case 1:
+                _b.apply(_a, [(_c.sent()).Sales]);
+                return [2 /*return*/];
+        }
+    });
+}); };
+main();
