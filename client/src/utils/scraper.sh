@@ -1,4 +1,3 @@
 #!/bin/bash
 tsc scraper.ts
-clear
-node scraper.js
+node scraper.js > output.txt

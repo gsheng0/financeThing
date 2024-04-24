@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.scrapeTableData = exports.scrapeFinVizData = void 0;
+exports.getFinancialInfo = exports.scrapeTableData = exports.scrapeFinVizData = void 0;
 var axios_1 = require("axios");
 var parse5_1 = require("parse5");
 var fetchFinancialData = function (ticker) { return __awaiter(void 0, void 0, void 0, function () {
@@ -259,20 +259,23 @@ var getFinancialInfo = function (ticker) { return __awaiter(void 0, void 0, void
         }
     });
 }); };
+exports.getFinancialInfo = getFinancialInfo;
 var addInfoToObj = function (obj, infoTable) {
     var years = infoTable[0];
     for (var i = 1; i < infoTable.length; i++) {
         var rowName = infoTable[i][0];
         if (rowName === undefined) {
-            continue;
+            rowName = "Revenue";
         }
         obj[rowName] = {};
         for (var x = 1; x < years.length; x++) {
             var value = infoTable[i][x];
             if (value === undefined) {
-                //do nothing
+                obj[rowName][years[x]] = value;
+                continue;
             }
-            else if (value.includes("%")) {
+            value = value.replace(/,/g, '');
+            if (value.includes("%")) {
                 value = value.substring(0, value.indexOf("%"));
                 value = (parseFloat(value) / 100);
             }
@@ -294,9 +297,9 @@ var main = function () { return __awaiter(void 0, void 0, void 0, function () {
         switch (_c.label) {
             case 0:
                 _b = (_a = console).log;
-                return [4 /*yield*/, getFinancialInfo("tsla")];
+                return [4 /*yield*/, (0, exports.getFinancialInfo)("tsla")];
             case 1:
-                _b.apply(_a, [(_c.sent()).Sales]);
+                _b.apply(_a, [(_c.sent())]);
                 return [2 /*return*/];
         }
     });

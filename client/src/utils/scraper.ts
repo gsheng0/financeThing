@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { parse } from 'parse5';
+import { FinancialData } from './typedefs';
 
 const fetchFinancialData = async(ticker: string) => {
     const result = await axios.get(`https://stockanalysis.com/stocks/${ticker}/financials/`)
@@ -180,8 +181,11 @@ const addInfoToObj = (obj: any, infoTable: string[][]) => {
         for(let x = 1; x < years.length; x++){
             let value: any = infoTable[i][x];
             if(value === undefined){
-                //do nothing
-            } else if(value.includes("%")){
+                obj[rowName][years[x]] = value;
+                continue;
+            }
+            value = value.replace(/,/g, '');
+            if(value.includes("%")){
                 value = value.substring(0, value.indexOf("%"));
                 value = (parseFloat(value)/100);
             } else {
